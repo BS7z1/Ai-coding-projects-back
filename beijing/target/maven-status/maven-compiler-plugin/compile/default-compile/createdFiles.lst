@@ -1,0 +1,5 @@
+com/bank/beijing/beijingmgr/common/pack/BeijingPack.class
+com/bank/beijing/beijingmgr/core/service/BeijingService.class
+com/bank/beijing/beijingmgr/core/dao/IBeijingDao.class
+com/bank/beijing/beijingmgr/core/iservice/IBeijingService.class
+com/bank/beijing/beijingmgr/web/controller/dwr/DwrBeijingService.class

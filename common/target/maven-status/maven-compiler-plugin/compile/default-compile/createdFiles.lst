@@ -1,0 +1,6 @@
+com/bank/common/entity/BaseEntity.class
+com/bank/common/exception/BusinessException.class
+com/bank/common/config/MyBatisPlusConfig.class
+com/bank/common/config/MyBatisPlusConfig$AutoFillHandler.class
+com/bank/common/result/Result.class
+com/bank/common/exception/GlobalExceptionHandler.class
