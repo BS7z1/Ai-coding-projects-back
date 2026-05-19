@@ -8,8 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 /**
  * 业务管理系统启动类
  */
-@SpringBootApplication
-@ComponentScan(basePackages = {"com.bank"})
+@SpringBootApplication(scanBasePackages = {"com.bank"})
 @MapperScan("com.bank.**.dao")
 public class Application {
 

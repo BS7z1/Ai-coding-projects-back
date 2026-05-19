@@ -4,7 +4,9 @@ import com.bank.beijing.loanledger.common.pack.LoanLedgerPack;
 import com.bank.beijing.loanledger.core.iservice.ILoanLedgerService;
 import com.bank.beijing.loanledger.core.pojo.LoanLedger;
 import com.bank.common.exception.BusinessException;
+import com.bank.common.module.ResultBean;
 import com.bank.common.result.Result;
+import com.bank.common.util.WebUtilWork;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +36,7 @@ public class DwrLoanLedgerService {
      * 借据列表分页查询
      */
     @PostMapping("/queryPage")
-    public Result<IPage<LoanLedger>> queryPage(@RequestBody LoanLedgerPack pack) {
+    public ResultBean queryPage(@RequestBody LoanLedgerPack pack) {
         if (pack.getQueryParams() == null) {
             pack.setQueryParams(new java.util.HashMap<>());
         }
@@ -45,7 +47,7 @@ public class DwrLoanLedgerService {
 
         IPage<LoanLedger> page = new Page<>(pageNum, pageSize);
         IPage<LoanLedger> result = loanLedgerService.queryPage(page, pack.getQueryParams(), userId, roleType);
-        return Result.success(result);
+        return WebUtilWork.WebResultPack(true, "查询成功", result);
     }
 
     // ==================== 新增 ====================
@@ -54,13 +56,13 @@ public class DwrLoanLedgerService {
      * 新增借据
      */
     @PostMapping("/add")
-    public Result<LoanLedger> add(@RequestBody LoanLedgerPack pack) {
+    public ResultBean add(@RequestBody LoanLedgerPack pack) {
         if (pack.getDataList() == null || pack.getDataList().isEmpty()) {
-            return Result.error("借据数据不能为空");
+            return WebUtilWork.WebResultPack(false, "借据数据不能为空", null);
         }
         String userId = pack.getUserId() != null ? pack.getUserId() : "system";
         LoanLedger result = loanLedgerService.addLoanLedger(pack.getDataList().get(0), userId);
-        return Result.success("新增成功", result);
+        return WebUtilWork.WebResultPack(true, "新增成功", result);
     }
 
     // ==================== 修改 ====================
@@ -69,13 +71,13 @@ public class DwrLoanLedgerService {
      * 修改借据
      */
     @PostMapping("/update")
-    public Result<LoanLedger> update(@RequestBody LoanLedgerPack pack) {
+    public ResultBean update(@RequestBody LoanLedgerPack pack) {
         if (pack.getDataList() == null || pack.getDataList().isEmpty()) {
-            return Result.error("借据数据不能为空");
+            return WebUtilWork.WebResultPack(false, "借据数据不能为空", null);
         }
         String userId = pack.getUserId() != null ? pack.getUserId() : "system";
         LoanLedger result = loanLedgerService.updateLoanLedger(pack.getDataList().get(0), userId);
-        return Result.success("修改成功", result);
+        return WebUtilWork.WebResultPack(true, "修改成功", result);
     }
 
     // ==================== 删除 ====================
@@ -84,26 +86,26 @@ public class DwrLoanLedgerService {
      * 删除借据
      */
     @PostMapping("/delete")
-    public Result<?> delete(@RequestBody LoanLedgerPack pack) {
+    public ResultBean delete(@RequestBody LoanLedgerPack pack) {
         if (pack.getIds() == null || pack.getIds().isEmpty()) {
-            return Result.error("请选择要删除的记录");
+            return WebUtilWork.WebResultPack(false, "请选择要删除的记录", null);
         }
         String userId = pack.getUserId() != null ? pack.getUserId() : "system";
         loanLedgerService.deleteLoanLedger(pack.getIds().get(0), userId);
-        return Result.success("删除成功");
+        return WebUtilWork.WebResultPack(true, "删除成功", null);
     }
 
     /**
      * 批量删除借据
      */
     @PostMapping("/batchDelete")
-    public Result<?> batchDelete(@RequestBody LoanLedgerPack pack) {
+    public ResultBean batchDelete(@RequestBody LoanLedgerPack pack) {
         if (pack.getIds() == null || pack.getIds().isEmpty()) {
-            return Result.error("请选择要删除的记录");
+            return WebUtilWork.WebResultPack(false, "请选择要删除的记录", null);
         }
         String userId = pack.getUserId() != null ? pack.getUserId() : "system";
         int count = loanLedgerService.batchDeleteLoanLedger(pack.getIds(), userId);
-        return Result.success("成功删除 " + count + " 条记录");
+        return WebUtilWork.WebResultPack(true, "成功删除 " + count + " 条记录", null);
     }
 
     // ==================== 提交复核 ====================
@@ -112,13 +114,13 @@ public class DwrLoanLedgerService {
      * 提交复核
      */
     @PostMapping("/submit")
-    public Result<?> submit(@RequestBody LoanLedgerPack pack) {
+    public ResultBean submit(@RequestBody LoanLedgerPack pack) {
         if (pack.getIds() == null || pack.getIds().isEmpty()) {
-            return Result.error("请选择要提交的记录");
+            return WebUtilWork.WebResultPack(false, "请选择要提交的记录", null);
         }
         String userId = pack.getUserId() != null ? pack.getUserId() : "system";
         loanLedgerService.submitForReview(pack.getIds().get(0), userId);
-        return Result.success("提交复核成功");
+        return WebUtilWork.WebResultPack(true, "提交复核成功", null);
     }
 
     // ==================== 批量导入 ====================
@@ -127,13 +129,13 @@ public class DwrLoanLedgerService {
      * 批量导入借据
      */
     @PostMapping("/batchImport")
-    public Result<Map<String, Object>> batchImport(@RequestBody LoanLedgerPack pack) {
+    public ResultBean batchImport(@RequestBody LoanLedgerPack pack) {
         if (pack.getDataList() == null || pack.getDataList().isEmpty()) {
-            return Result.error("导入数据不能为空");
+            return WebUtilWork.WebResultPack(false, "导入数据不能为空", null);
         }
         String userId = pack.getUserId() != null ? pack.getUserId() : "system";
         Map<String, Object> result = loanLedgerService.batchImport(pack.getDataList(), userId);
-        return Result.success("批量导入完成", result);
+        return WebUtilWork.WebResultPack(true, "批量导入完成", result);
     }
 
     // ==================== 导出 ====================
@@ -142,14 +144,14 @@ public class DwrLoanLedgerService {
      * 导出借据列表
      */
     @PostMapping("/export")
-    public Result<List<LoanLedger>> exportList(@RequestBody LoanLedgerPack pack) {
+    public ResultBean exportList(@RequestBody LoanLedgerPack pack) {
         if (pack.getQueryParams() == null) {
             pack.setQueryParams(new java.util.HashMap<>());
         }
         String userId = pack.getUserId() != null ? pack.getUserId() : "system";
         String roleType = pack.getRoleType() != null ? pack.getRoleType() : "applicant";
         List<LoanLedger> list = loanLedgerService.exportList(pack.getQueryParams(), userId, roleType);
-        return Result.success(list);
+        return WebUtilWork.WebResultPack(list);
     }
 
     // ==================== 审批 ====================
@@ -158,40 +160,40 @@ public class DwrLoanLedgerService {
      * 审批通过
      */
     @PostMapping("/approve")
-    public Result<?> approve(@RequestBody LoanLedgerPack pack) {
+    public ResultBean approve(@RequestBody LoanLedgerPack pack) {
         if (pack.getIds() == null || pack.getIds().isEmpty()) {
-            return Result.error("请选择要审批的记录");
+            return WebUtilWork.WebResultPack(false, "请选择要审批的记录", null);
         }
         String reviewBy = pack.getUserId() != null ? pack.getUserId() : "system";
         loanLedgerService.approve(pack.getIds().get(0), reviewBy);
-        return Result.success("审批通过");
+        return WebUtilWork.WebResultPack(true, "审批通过", null);
     }
 
     /**
      * 批量审批通过
      */
     @PostMapping("/batchApprove")
-    public Result<?> batchApprove(@RequestBody LoanLedgerPack pack) {
+    public ResultBean batchApprove(@RequestBody LoanLedgerPack pack) {
         if (pack.getIds() == null || pack.getIds().isEmpty()) {
-            return Result.error("请选择要审批的记录");
+            return WebUtilWork.WebResultPack(false, "请选择要审批的记录", null);
         }
         String reviewBy = pack.getUserId() != null ? pack.getUserId() : "system";
         int count = loanLedgerService.batchApprove(pack.getIds(), reviewBy);
-        return Result.success("成功审批通过 " + count + " 条记录");
+        return WebUtilWork.WebResultPack(true, "成功审批通过 " + count + " 条记录", null);
     }
 
     /**
      * 审批拒绝
      */
     @PostMapping("/reject")
-    public Result<?> reject(@RequestBody LoanLedgerPack pack) {
+    public ResultBean reject(@RequestBody LoanLedgerPack pack) {
         if (pack.getIds() == null || pack.getIds().isEmpty()) {
-            return Result.error("请选择要审批的记录");
+            return WebUtilWork.WebResultPack(false, "请选择要审批的记录", null);
         }
         String reviewBy = pack.getUserId() != null ? pack.getUserId() : "system";
         String rejectReason = pack.getRejectReason();
         loanLedgerService.reject(pack.getIds().get(0), reviewBy, rejectReason);
-        return Result.success("审批已拒绝");
+        return WebUtilWork.WebResultPack(true, "审批已拒绝", null);
     }
 
     // ==================== 借据号唯一性校验 ====================
@@ -200,28 +202,28 @@ public class DwrLoanLedgerService {
      * 校验借据号唯一性
      */
     @PostMapping("/checkLoanId")
-    public Result<Boolean> checkLoanId(@RequestBody LoanLedgerPack pack) {
+    public ResultBean checkLoanId(@RequestBody LoanLedgerPack pack) {
         if (pack.getDataList() == null || pack.getDataList().isEmpty()) {
-            return Result.error("借据数据不能为空");
+            return WebUtilWork.WebResultPack(false, "借据数据不能为空", null);
         }
         String loanId = pack.getDataList().get(0).getLoanId();
         Long excludeId = pack.getDataList().get(0).getId();
         boolean unique = loanLedgerService.isLoanIdUnique(loanId, excludeId);
-        return Result.success(unique);
+        return WebUtilWork.WebResultPack(true, "查询成功", unique);
     }
 
     /**
      * 查询单条借据详情
      */
     @PostMapping("/detail")
-    public Result<LoanLedger> detail(@RequestBody LoanLedgerPack pack) {
+    public ResultBean detail(@RequestBody LoanLedgerPack pack) {
         if (pack.getIds() == null || pack.getIds().isEmpty()) {
-            return Result.error("请选择要查看的记录");
+            return WebUtilWork.WebResultPack(false, "请选择要查看的记录", null);
         }
         LoanLedger loanLedger = loanLedgerService.getById(pack.getIds().get(0));
         if (loanLedger == null) {
-            return Result.error("借据记录不存在");
+            return WebUtilWork.WebResultPack(false, "借据记录不存在", null);
         }
-        return Result.success(loanLedger);
+        return WebUtilWork.WebResultPack(true, "查询成功", loanLedger);
     }
 }
