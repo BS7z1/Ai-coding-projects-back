@@ -8,6 +8,7 @@ import org.hibernate.query.NativeQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.jdbc.object.SqlQuery;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
@@ -31,6 +32,9 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
     }
 
     @Autowired
+    private EntityManagerFactory entityManagerFactory;
+
+    @Resource
     private void setSuperSessionFactory(EntityManagerFactory entityManagerFactory) {
         SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
         super.setSessionFactory(sessionFactory);
@@ -179,7 +183,7 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
      */
     public List<Obj> findByProperty(String propertyName, Object value){
         String queryString = "from " + persistentClass.getName()
-                + " as model where model." + propertyName + " = ?0";
+                + " as model where model." + propertyName + "= ?0";
         Query queryObject = getSession().createQuery(queryString);
         queryObject.setParameter(0, value);
         return queryObject.list();
@@ -196,16 +200,16 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
 
     /**
      * 通过多个对象属性查找对象，封装成数组
-     * @param propertyName
+     * @param propertyNames
      * @param values
      * @return
      */
-    public List<Obj> findByProperty(String[] propertyName, Object[] values){
+    public List<Obj> findByProperty(String[] propertyNames, Object[] values){
         StringBuffer queryString = new StringBuffer();
         queryString.append("from " + persistentClass.getSimpleName()
                 + " as model ");
 
-        int size = propertyName.length;
+        int size = propertyNames.length;
         if(size > 0){
             queryString.append("where 1=1 ");
         }
@@ -219,7 +223,7 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
         return queryObject.list();
     }
 
-    public int findByPropertyCount(String[] propertyName, Object[] values){
+    public int findByPropertyCount(String[] propertyNames, Object[] values){
         StringBuffer queryString = new StringBuffer();
         queryString.append("select count(distinct model) from "
                 + persistentClass.getSimpleName() + " as model ");
@@ -743,7 +747,7 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
         }
         org.hibernate.query.Query query = getSession().createQuery(queryString.toString());
         if(paraMap!=null) {
-            Set<Map.Entry<String, Object> entries = paraMap.entrySet();
+            Set<Map.Entry<String, Object>> entries = paraMap.entrySet();
             for (Map.Entry<String, Object> entry : entries) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
@@ -825,7 +829,7 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
 
     @Override
     public List<Object[]> findBySqlObjListPrepareSqlPage(String sql, Pager pager, Object[] params){
-        List<Object[]> objList = new ArrayList<~>();
+        List<Object[]> objList = new ArrayList<Object[]>();
         SQLQuery queryObject = getSession().createSQLQuery(sql);
         queryObject.setFirstResult(pager.getStartRow()).setMaxResults(pager.getPageSize());
         if(params!=null){
@@ -859,7 +863,7 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
         }
         org.hibernate.query.Query query = getSession().createQuery(queryString.toString());
         if(paraMap!=null) {
-            Set<Map.Entry<String, Object> entries = paraMap.entrySet();
+            Set<Map.Entry<String, Object>> entries = paraMap.entrySet();
             for (Map.Entry<String, Object> entry : entries) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
@@ -914,7 +918,7 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
         }
         org.hibernate.query.Query query = getSession().createQuery(queryString.toString());
         if(paraMap!=null) {
-            Set<Map.Entry<String, Object> entries = paraMap.entrySet();
+            Set<Map.Entry<String, Object>> entries = paraMap.entrySet();
             for (Map.Entry<String, Object> entry : entries) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
@@ -968,14 +972,14 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
     }
 
     public List<Object[]> findBySqlObjList(String sql){
-        List<Object[]> objList = new ArrayList<~>();
+        List<Object[]> objList = new ArrayList<Object[]>();
         SQLQuery queryObject = getSession().createSQLQuery(sql);
         objList = queryObject.list();
         return objList;
     }
 
     public List<Object[]> findBySqlObjListByPager(String sql, Pager pager){
-        List<Object[]> objList = new ArrayList<~>();
+        List<Object[]> objList = new ArrayList<Object[]>();
         SQLQuery queryObject = getSession().createSQLQuery(sql);
         queryObject.setFirstResult(pager.getStartRow()).setMaxResults(pager.getPageSize());
         objList = queryObject.list();
@@ -988,7 +992,7 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
      * @return
      */
     private List<Object[]> adjustResult(List<Object[]> objList, Pager pager){
-        List<Object[]> newList = new ArrayList<~>();
+        List<Object[]> newList = new ArrayList<Object[]>();
         if(pager.getStartRow()>0){
             for(Object[] objects: objList){
                 Object[] newObjects = new Object[objects.length];
@@ -1035,6 +1039,11 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
         return Integer.valueOf(count);
     }
 
+    public int executeSql(String sql){
+        SQLQuery queryObject = getSession().createSQLQuery(sql);
+        return queryObject.executeUpdate();
+    }
+
     //执行sql，返回执行成功条数，只适用于update和delete
     public int executeSqlByPrepareSqlPage(String sql, Object[] params){
         NativeQuery queryObject = getSession().createSQLQuery(sql);
@@ -1055,7 +1064,7 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
                 .append(" like '")
                 .append(sign)
                 .append("%'");
-        List ls = getSession().createQuery(sql, toString()).list();
+        List ls = getSession().createQuery(sql.toString()).list();
         String max = (String)ls.get(0);
         int i = 0;
         //首次添加记录，记录类似BT000000000001

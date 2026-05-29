@@ -122,7 +122,7 @@ public interface BaseDao<Obj, PK extends Serializable> {
      * @param params
      * @return
      */
-    List<Obj> findBySqlObjListPrepareSqlPage(String sql, Pager pager, Object[] params);
+    List<Object[]> findBySqlObjListPrepareSqlPage(String sql, Pager pager, Object[] params);
 
     /**
      * 自定义预编译sql查询行数
@@ -141,7 +141,7 @@ public interface BaseDao<Obj, PK extends Serializable> {
      */
     public List<Obj> findByPrepareHqlWherePage (String hqlWhere, Map<String, Object> paraMap, Pager pager);
 
-    public int findByHqWhereCount(String hqlWhere);
+    public int findByHqlWhereCount(String hqlWhere);
 
     /**
      * 预编译hql条件查询数量统计
@@ -149,7 +149,7 @@ public interface BaseDao<Obj, PK extends Serializable> {
      * @param paraArr
      * @return
      */
-    public int findByprepareHqlWhereCount(String hqlWhere, Object[] paraArr);
+    public int findByPrepareHqlWhereCount(String hqlWhere, Object[] paraArr);
 
     /**
      * 预编译hql条件查询数量统计
@@ -157,7 +157,7 @@ public interface BaseDao<Obj, PK extends Serializable> {
      * @param paraMap
      * @return
      */
-    public int findByprepareHqlWhereCount(String hqlWhere, Map<String, Object> paraMap);
+    public int findByPrepareHqlWhereCount(String hqlWhere, Map<String, Object> paraMap);
 
     public void flushSession();
 
