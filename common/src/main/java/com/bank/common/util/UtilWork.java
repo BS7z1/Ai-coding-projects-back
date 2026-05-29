@@ -222,7 +222,7 @@ public class UtilWork {
      * 验证日期时间前后
      * @param term 期数
      */
-    public static boolean termChange(int term){
+    public static String termChange(int term){
         switch (term){
             case 1 : return "<";
             case 2 : return ">";
@@ -238,7 +238,7 @@ public class UtilWork {
      * 取当月的首个日期
      */
     public static String getFirstDateOfMonth(){
-        Calender cuurentCal = Calendar.getInstance();
+        Calendar cuurentCal = Calendar.getInstance();
         cuurentCal.set(Calendar.DATE, 1);
         int currentday = cuurentCal.get(Calendar.DAY_OF_MONTH);
         int currentmonth = cuurentCal.get(Calendar.MONTH)+1;
@@ -251,7 +251,7 @@ public class UtilWork {
      * 取当月的最后一个日期
      */
     public static String getEndDateOfMonth(){
-        Calender cuurentCal = Calendar.getInstance();
+        Calendar cuurentCal = Calendar.getInstance();
         cuurentCal.set(Calendar.DATE, 1);
         cuurentCal.roll(Calendar.DATE, -1);
         int maxDate = cuurentCal.get(Calendar.DATE);
@@ -323,7 +323,7 @@ public class UtilWork {
      * @return
      */
     public static List<String> getDaysByYearMonth(String ym){
-        List<String> list = new ArrayList<~>();
+        List<String> list = new ArrayList<String>();
         int maxDate = getMaxDayByYearMonth(ym);
         for(int i=1; i<=maxDate; i++){
             String d = String.valueOf(i<10?"0"+i:i);
@@ -336,17 +336,17 @@ public class UtilWork {
      * @param iscurrentdate 是否包含当天
      */
     public static List<String> getDayToMonthEnd(boolean iscurrentdate){
-        List<String> list = new ArrayList<~>();
+        List<String> list = new ArrayList<String>();
         Calendar calendar = new GregorianCalendar();
         int cday = calendar.get(Calendar.DAY_OF_MONTH);
         int currentyear = calendar.get(Calendar.YEAR);
         int currentmonth = calendar.get(Calendar.MONTH)+1;
         if(iscurrentdate){
-            List.add(getYearAndMonthAndDay(currentyear, currentmonth, cday));
+            list.add(getYearAndMonthAndDay(currentyear, currentmonth, cday));
         }
         int maxDate = getMaxDayByYearMonth(getCustomerDay("yyyy-MM"));
         for(int i=cday+1; i<=maxDate; i++){
-            list.add(getYearAndMonthAndDay(currentyear, currentmonth, i))
+            list.add(getYearAndMonthAndDay(currentyear, currentmonth, i));
         }
         Collections.sort(list);
         return list;
@@ -368,8 +368,8 @@ public class UtilWork {
         }catch(ParseException e){
             logger.error("时间格式化出错："+e.getMessage());
         }
-        DecimalFormat df = new DecimalFormat("#.##");
-        return df.format(number);
+        DecimalFormat nf = new DecimalFormat("#.##");
+        return nf.format(number);
     }
     /**
      * 获取当前日期的前一天

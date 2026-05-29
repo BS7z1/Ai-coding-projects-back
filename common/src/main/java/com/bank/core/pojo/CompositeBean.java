@@ -45,7 +45,7 @@ public abstract class CompositeBean<T> implements Serializable {
         setRecordId(empid);
         setRecordDate(UtilWork.getNowTime());
         setLastmodiId(empid);
-        setLastmodiDate(UtilWork.getNowTime();
+        setLastmodiDate(UtilWork.getNowTime());
     }
 
     public void initUpdate(String empid){
