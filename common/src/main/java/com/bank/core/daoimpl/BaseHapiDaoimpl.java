@@ -838,12 +838,12 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
             }
         }
         objList = queryObject.list();
-        return adjustObjList(objList, pager);
+        return adjustResult(objList, pager);
     }
 
     @Override
     public int findCountByPrepareSql(String sql, Object[] params){
-        SqlQuery queryObject = getSession().createSQLQuery(sql);
+        SQLQuery queryObject = getSession().createSQLQuery(sql);
         if(params!=null){
             for(int i=0; i<params.length; i++){
                 queryObject.setParameter(i+1, params[i]);

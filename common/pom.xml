@@ -30,15 +30,21 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <!-- Hibernate 5.6.x 兼容 Java 8（勿升级到 6.x，6.x 要求 Java 11+） -->
         <dependency>
-            <groupId>org.hibernate.orm</groupId>
+            <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>6.6.50.Final</version>
+            <version>5.6.15.Final</version>
         </dependency>
+        <!-- spring-orm: 提供 HibernateDaoSupport/HibernateCallback 等 -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-orm</artifactId>
-            <version>6.2.12</version>
+        </dependency>
+        <!-- Spring Security: SecurityConfig 放在 common 模块，需在此声明 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
     </dependencies>
 
