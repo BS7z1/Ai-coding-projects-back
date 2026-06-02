@@ -18,4 +18,6 @@ public class DataSourceConstants {
     public static final String DATASOURCE_CZFS = "czfs";
 
     public static final String DATASOURCE_HLWFHTY = "hlwfhty";
+
+    public static final String DATASOURCE_MYSQL_BUSI = "mysql_busi_";
 }

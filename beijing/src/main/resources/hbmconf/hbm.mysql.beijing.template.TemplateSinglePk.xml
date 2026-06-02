@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.bank.beijing.template.core.pojo"
+    default-lazy="true" default-cascade="save-update,merge,persist">
+    <class name="com.bank.beijing.template.core.pojo.TemplateSinglePk" table="chenziyi.template_single_pk">
+        <id name="primaryKey" type="java.lang.String">
+            <column name="TSK_ID" />
+        </id>
+        <property name="loanId" type="java.lang.String">
+            <column name="LOAN_ID" />
+        </property>
+        <property name="companyName" type="java.lang.String">
+            <column name="COMPANY_NAME" />
+        </property>
+        <property name="creditCode" type="java.lang.String">
+            <column name="CREDIT_CODE" />
+        </property>
+        <property name="amount" type="java.math.BigDecimal">
+            <column name="AMOUNT" />
+        </property>
+        <property name="interestRate" type="java.math.BigDecimal">
+            <column name="INTEREST_RATE" />
+        </property>
+        <property name="isValid" type="java.lang.String">
+            <column name="IS_VALID" />
+        </property>
+        <property name="empNo" type="java.lang.String">
+            <column name="EMP_NO" />
+        </property>
+        <property name="empNm" type="java.lang.String">
+            <column name="EMP_NM" />
+        </property>
+        <property name="startTm" type="java.sql.Date">
+            <column name="START_TM" />
+        </property>
+        <property name="updatedTm" type="java.sql.Timestamp">
+            <column name="UPDATED_TM" />
+        </property>
+    </class>
+</hibernate-mapping>
