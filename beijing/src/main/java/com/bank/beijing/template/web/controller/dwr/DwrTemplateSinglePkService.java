@@ -58,8 +58,8 @@ public class DwrTemplateSinglePkService {
     /**
      * 根据主键获得TemplateSinglePk
      */
-    public ResultBean getTemplateSinglePk(ServletContext context, HttpServletRequest request, String pk){
-        TemplateSinglePk templateSinglePk = templateSinglePkService.getTemplateSinglePk(pk);
+    public ResultBean getTemplateSinglePkByPk(ServletContext context, HttpServletRequest request, String pk){
+        TemplateSinglePk templateSinglePk = templateSinglePkService.getTemplateSinglePkByPk(pk);
         logger.info("根据主键获得 TemplateSinglePk ...");
         return WebUtilWork.WebResultPack(templateSinglePk);
     }
@@ -67,8 +67,8 @@ public class DwrTemplateSinglePkService {
     /**
      * 删除 TemplateSinglePk
      */
-    public ResultBean deleteTemplateSinglePk(ServletContext context, HttpServletRequest request, String[] pks){
-        templateSinglePkService.deleteTemplateSinglePk(pks);
+    public ResultBean deleteTemplateSinglePkByPks(ServletContext context, HttpServletRequest request, String[] pks){
+        templateSinglePkService.deleteTemplateSinglePkByPks(pks);
         for (String pk: pks){
             logger.info("删除 TemplateSinglePk...{}", pk);
         }

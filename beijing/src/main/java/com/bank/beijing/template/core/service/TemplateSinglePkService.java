@@ -40,12 +40,12 @@ public class TemplateSinglePkService extends AbstractMysqlBUSIService implements
         return temp;
     }
 
-    public TemplateSinglePk getTemplateSinglePk(String pk) {
+    public TemplateSinglePk getTemplateSinglePkByPk(String pk) {
         TemplateSinglePk templateSinglePk = (TemplateSinglePk)templateSinglePkDao.getByPK(pk);
         return templateSinglePk;
     }
 
-    public void deleteTemplateSinglePk(String[] pks) {
+    public void deleteTemplateSinglePkByPks(String[] pks) {
         for(String pk: pks){
             TemplateSinglePk templateSinglePk = templateSinglePkDao.getByPK(pk);
             templateSinglePkDao.remove(templateSinglePk);

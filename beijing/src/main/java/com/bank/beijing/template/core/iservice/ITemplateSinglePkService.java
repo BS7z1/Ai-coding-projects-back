@@ -8,6 +8,6 @@ public interface ITemplateSinglePkService {
     public int listTemplateSinglePkCount(TemplateSinglePk templateSinglePk);
     public List<TemplateSinglePk> listTemplateSinglePk(TemplateSinglePk templateSinglePk, Pager pager);
     public TemplateSinglePk saveTemplateSinglePk(TemplateSinglePk templateSinglePk);
-    public TemplateSinglePk getTemplateSinglePk(String pk);
-    public void deleteTemplateSinglePk(String[] pks);
+    public TemplateSinglePk getTemplateSinglePkByPk(String pk);
+    public void deleteTemplateSinglePkByPks(String[] pks);
 }
