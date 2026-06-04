@@ -20,7 +20,7 @@ public class UtilWork {
         } else if (date!="all") {
             Calendar cal = Calendar.getInstance();
             str[1] = cal.get(cal.YEAR) + "-" +(cal.get(cal.MONTH)+1)+"-"
-                    +cal.get(cal.DATE) + " 23.59.59";
+                    +cal.get(cal.DATE) + " 23:59:59";
             if(date == "today"){
                 str[0] = cal.get(cal.YEAR)+"-"+(cal.get(cal.MONTH)+1)
                         +"-"+cal.get(cal.DATE)+" 00:00:01";
