@@ -1,6 +1,7 @@
 package com.bank.beijing.template.web.controller.dwr;
 
 
+import com.bank.beijing.template.common.pack.TemplateSinglePkRequestPack;
 import com.bank.beijing.template.core.iservice.ITemplateSinglePkService;
 import com.bank.beijing.template.core.pojo.TemplateSinglePk;
 import com.bank.common.module.ResultBean;
@@ -23,6 +24,31 @@ public class DwrTemplateSinglePkService {
 
     @Resource
     private ITemplateSinglePkService templateSinglePkService;
+
+    public ResultBean listTemplateSinglePk(TemplateSinglePkRequestPack pack) {
+        TemplateSinglePk templateSinglePk = pack.getTemplateSinglePk() == null ? new TemplateSinglePk() : pack.getTemplateSinglePk();
+        Pager pager = pack.getPager() == null ? new Pager() : pack.getPager();
+        return listTemplateSinglePk(null, null, templateSinglePk, pager);
+    }
+
+    public ResultBean saveTemplateSinglePk(TemplateSinglePkRequestPack pack) {
+        TemplateSinglePk templateSinglePk = pack.getTemplateSinglePk() == null ? new TemplateSinglePk() : pack.getTemplateSinglePk();
+        return saveTemplateSinglePk(null, null, templateSinglePk);
+    }
+
+    public ResultBean updateTemplateSinglePk(TemplateSinglePkRequestPack pack) {
+        TemplateSinglePk templateSinglePk = pack.getTemplateSinglePk() == null ? new TemplateSinglePk() : pack.getTemplateSinglePk();
+        return updateTemplateSinglePk(null, null, templateSinglePk);
+    }
+
+    public ResultBean getTemplateSinglePkByPk(TemplateSinglePkRequestPack pack) {
+        return getTemplateSinglePkByPk(null, null, pack.getPk());
+    }
+
+    public ResultBean deleteTemplateSinglePkByPks(TemplateSinglePkRequestPack pack) {
+        String[] pks = pack.getPks() == null ? new String[0] : pack.getPks();
+        return deleteTemplateSinglePkByPks(null, null, pks);
+    }
 
     /**
      * 查询TemplateSinglePk分页列表

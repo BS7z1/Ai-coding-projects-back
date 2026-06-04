@@ -2,7 +2,8 @@ package com.bank.beijing.template.common.pack;
 
 import com.bank.beijing.template.core.pojo.TemplateSinglePk;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TemplateSinglePkPack {
 
