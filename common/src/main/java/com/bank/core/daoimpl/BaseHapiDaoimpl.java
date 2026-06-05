@@ -14,7 +14,9 @@ import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceContext;
 import java.io.Serializable;
 import java.lang.InstantiationException;
 import java.util.ArrayList;
@@ -1104,8 +1106,10 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
         return queryObject.list().iterator().next();
     }
 
-    public Session getSession(){
-        Session session = entityManagerFactory.unwrap(SessionFactory.class).getCurrentSession();
-        return session;
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    protected Session getSession(){
+        return entityManager.unwrap(Session.class);
     }
 }

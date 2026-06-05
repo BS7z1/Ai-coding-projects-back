@@ -11,7 +11,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/chenziyi?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: Aicoding@0517
+    password: 123456
     druid:
       initial-size: 5
       min-idle: 5
@@ -23,6 +23,13 @@ spring:
       test-while-idle: true
       test-on-borrow: false
       test-on-return: false
+  jpa:
+    packages-to-scan: com.bank.beijing.template.core.pojo
+    properties:
+      hibernate:
+          current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
+          mapping_resources: hbmconf/hbm.mysql.beijing.template.TemplateSinglePk.xml
+
 
   redis:
     host: localhost
