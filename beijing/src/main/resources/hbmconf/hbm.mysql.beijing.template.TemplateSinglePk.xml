@@ -4,7 +4,7 @@
 
 <hibernate-mapping package="com.bank.beijing.template.core.pojo"
     default-lazy="true" default-cascade="save-update,merge,persist">
-    <class name="com.bank.beijing.template.core.pojo.TemplateSinglePk" table="chenziyi.template_single_pk">
+    <class name="com.bank.beijing.template.core.pojo.TemplateSinglePk" table="gyy.template_single_pk">
         <id name="primaryKey" type="java.lang.String">
             <column name="TSK_ID" />
         </id>

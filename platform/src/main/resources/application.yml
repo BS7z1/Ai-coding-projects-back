@@ -6,12 +6,22 @@ server:
 spring:
   application:
     name: business-management
+  jpa:
+    open-in-view: false
+    mapping-resources:
+      - hbmconf/hbm.mysql.beijing.template.TemplateSinglePk.xml
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/chenziyi?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/gyy?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: Aicoding@0517
+    password: 1q2w3e
     druid:
       initial-size: 5
       min-idle: 5

@@ -17,8 +17,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -57,6 +61,31 @@ public class DwrBridgeController {
         Object service = applicationContext.getBean(beanName);
         Method method = findDwrMethod(service.getClass(), methodName);
         Object[] args = buildMethodArgs(method, request);
+        try {
+            return method.invoke(service, args);
+        } catch (InvocationTargetException ex) {
+            Throwable targetException = ex.getTargetException();
+            if (targetException instanceof Exception) {
+                throw (Exception) targetException;
+            }
+            throw ex;
+        }
+    }
+
+    @PostMapping("/{area}/{module}/{serviceName}/{methodName}")
+    public Object invokeLegacyDwr(@PathVariable String area,
+                                  @PathVariable String module,
+                                  @PathVariable String serviceName,
+                                  @PathVariable String methodName,
+                                  HttpServletRequest request) throws Exception {
+        if (!SERVICE_WHITE_LIST.containsValue(serviceName)) {
+            throw new IllegalArgumentException("Unsupported dwr service: " + serviceName);
+        }
+
+        Object service = applicationContext.getBean(serviceName);
+        Method method = findDwrMethod(service.getClass(), methodName);
+        Object[] args = buildMethodArgs(method, request);
+
         try {
             return method.invoke(service, args);
         } catch (InvocationTargetException ex) {
@@ -243,6 +272,12 @@ public class DwrBridgeController {
         if (Long.class.equals(fieldType) || long.class.equals(fieldType)) {
             return parseLongValue(value);
         }
+        if (java.sql.Date.class.equals(fieldType)) {
+            return parseSqlDateValue(value);
+        }
+        if (Timestamp.class.equals(fieldType)) {
+            return parseTimestampValue(value);
+        }
         if (fieldType.isArray()) {
             return normalizeArrayValue(value, fieldType.getComponentType());
         }
@@ -320,6 +355,48 @@ public class DwrBridgeController {
         }
         String text = String.valueOf(value).trim();
         return text.isEmpty() ? null : Long.valueOf(text);
+    }
+
+    private java.sql.Date parseSqlDateValue(Object value) {
+        if (value instanceof java.sql.Date) {
+            return (java.sql.Date) value;
+        }
+        Date date = parseDateValue(value);
+        return date == null ? null : new java.sql.Date(date.getTime());
+    }
+
+    private Timestamp parseTimestampValue(Object value) {
+        if (value instanceof Timestamp) {
+            return (Timestamp) value;
+        }
+        Date date = parseDateValue(value);
+        return date == null ? null : new Timestamp(date.getTime());
+    }
+
+    private Date parseDateValue(Object value) {
+        if (value instanceof Date) {
+            return (Date) value;
+        }
+        String text = String.valueOf(value).trim();
+        if (text.isEmpty()) {
+            return null;
+        }
+        String[] patterns = {
+                "yyyy-MM-dd HH:mm:ss",
+                "yyyy-MM-dd HH:mm",
+                "yyyy-MM-dd",
+                "yyyy-MM-dd'T'HH:mm:ss.SSSX",
+                "yyyy-MM-dd'T'HH:mm:ssX"
+        };
+        for (String pattern : patterns) {
+            try {
+                SimpleDateFormat format = new SimpleDateFormat(pattern);
+                format.setLenient(false);
+                return format.parse(text);
+            } catch (ParseException ignored) {
+            }
+        }
+        throw new IllegalArgumentException("Unsupported date format: " + text);
     }
 
     private Field findField(Class<?> type, String fieldName) {

@@ -1,0 +1,13 @@
+<dwr>
+    <allow>
+        <create creator="spring" javascript="DwrLoanLedgerService">
+            <param name="beanName" value="dwrLoanLedgerService"/>
+        </create>
+
+        <convert converter="bean"
+                 match="com.bank.beijing.loanledger.common.pack.LoanLedgerPack"/>
+
+        <convert converter="bean"
+                 match="com.bank.beijing.loanledger.core.pojo.LoanLedger"/>
+    </allow>
+</dwr>

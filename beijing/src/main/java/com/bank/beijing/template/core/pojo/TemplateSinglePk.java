@@ -39,11 +39,12 @@ public class TemplateSinglePk extends SingleBean<java.lang.String> implements ja
 
     // getter and setter
     public java.lang.String getTskId() {
-        return tskId;
+        return tskId == null ? getPrimaryKey() : tskId;
     }
 
     public void setTskId(java.lang.String tskId) {
         this.tskId = tskId;
+        setPrimaryKey(tskId);
     }
 
     public java.lang.String getLoanId() {

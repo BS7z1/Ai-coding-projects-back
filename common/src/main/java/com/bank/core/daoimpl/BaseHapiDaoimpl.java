@@ -14,7 +14,9 @@ import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceContext;
 import java.io.Serializable;
 import java.lang.InstantiationException;
 import java.util.ArrayList;
@@ -34,6 +36,9 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
     @Autowired
     private EntityManagerFactory entityManagerFactory;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Resource
     private void setSuperSessionFactory(EntityManagerFactory entityManagerFactory) {
         SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
@@ -46,7 +51,7 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
      */
     public Obj getByPK(PK id){
         logger.debug("get: "+ id);
-        return (Obj) this.getHibernateTemplate().get(persistentClass, id);
+        return (Obj) getSession().get(persistentClass, id);
     }
     /**
      * 查出所有对象
@@ -86,7 +91,7 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
      */
     public void remove(Obj o){
         logger.debug("list:" + persistentClass.getName());
-        this.getHibernateTemplate().delete(o);
+        getSession().delete(o);
     }
 
     /**
@@ -94,7 +99,7 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
      */
     public Object save(Obj o){
         logger.debug("save:" + persistentClass.getName());
-        Object obj = this.getHibernateTemplate().merge(o);
+        Object obj = getSession().merge(o);
         return obj;
     }
 
@@ -1105,7 +1110,7 @@ public class BaseHapiDaoimpl<Obj, PK extends Serializable> extends
     }
 
     public Session getSession(){
-        Session session = entityManagerFactory.unwrap(SessionFactory.class).getCurrentSession();
+        Session session = entityManager.unwrap(Session.class);
         return session;
     }
 }
