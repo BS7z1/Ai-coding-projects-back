@@ -126,10 +126,28 @@ public class DwrBridgeController {
     }
 
     private Method findDwrMethod(Class<?> serviceClass, String methodName) {
+//        for (Method method : serviceClass.getMethods()) {
+//            if (method.getName().equals(methodName) && method.getParameterTypes().length <= 1) {
+//                return method;
+//            }
+//        }
+//        throw new IllegalArgumentException("Unsupported dwr method: " + methodName);
+        Method bestMatch = null;
+        int minParams = Integer.MAX_VALUE;
+
         for (Method method : serviceClass.getMethods()) {
-            if (method.getName().equals(methodName) && method.getParameterTypes().length <= 1) {
-                return method;
+            if (method.getName().equals(methodName)) {
+                int paramCount = method.getParameterTypes().length;
+                // 优先选参数最少的方法（0个优先，其次1个，其次多个）
+                if (paramCount < minParams) {
+                    minParams = paramCount;
+                    bestMatch = method;
+                }
             }
+        }
+
+        if (bestMatch != null) {
+            return bestMatch;
         }
         throw new IllegalArgumentException("Unsupported dwr method: " + methodName);
     }
@@ -142,7 +160,64 @@ public class DwrBridgeController {
         if (parameterTypes.length == 1) {
             return new Object[]{parseRequest(request, parameterTypes[0])};
         }
-        throw new IllegalArgumentException("Only zero-arg or one-arg dwr methods are supported");
+//        throw new IllegalArgumentException("Only zero-arg or one-arg dwr methods are supported");
+        Object[] args = new Object[parameterTypes.length];
+        Map<String, String[]> paramMap = request.getParameterMap();
+
+        for (int i = 0; i < parameterTypes.length; i++) {
+            Class<?> paramType = parameterTypes[i];
+            String paramName = "arg" + i;  // 默认 arg0, arg1...
+
+            // 尝试获取参数值
+            String[] values = paramMap.get(paramName);
+            if (values == null) {
+                // 尝试用简单类名
+                paramName = paramType.getSimpleName().toLowerCase();
+                values = paramMap.get(paramName);
+            }
+            if (values == null) {
+                paramName = "param" + i;
+                values = paramMap.get(paramName);
+            }
+
+            if (values != null && values.length > 0) {
+                args[i] = convertSimpleValue(values[0], paramType);
+            } else {
+                args[i] = getDefaultValue(paramType);
+            }
+        }
+
+        return args;
+    }
+    private Object convertSimpleValue(String value, Class<?> targetType) {
+        if (value == null || value.trim().isEmpty()) {
+            return getDefaultValue(targetType);
+        }
+        if (String.class.equals(targetType)) return value;
+        if (Integer.class.equals(targetType) || int.class.equals(targetType)) return Integer.valueOf(value);
+        if (Long.class.equals(targetType) || long.class.equals(targetType)) return Long.valueOf(value);
+        if (Double.class.equals(targetType) || double.class.equals(targetType)) return Double.valueOf(value);
+        if (Boolean.class.equals(targetType) || boolean.class.equals(targetType)) return Boolean.valueOf(value);
+
+        // 复杂类型尝试 JSON 解析
+        try {
+            return objectMapper.readValue(value, targetType);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private Object getDefaultValue(Class<?> type) {
+        if (!type.isPrimitive()) return null;
+        if (int.class.equals(type)) return 0;
+        if (long.class.equals(type)) return 0L;
+        if (double.class.equals(type)) return 0.0;
+        if (boolean.class.equals(type)) return false;
+        if (float.class.equals(type)) return 0.0f;
+        if (short.class.equals(type)) return (short) 0;
+        if (byte.class.equals(type)) return (byte) 0;
+        if (char.class.equals(type)) return '\0';
+        return null;
     }
 
     private Object parseRequest(HttpServletRequest request, Class<?> targetType) throws IOException {
