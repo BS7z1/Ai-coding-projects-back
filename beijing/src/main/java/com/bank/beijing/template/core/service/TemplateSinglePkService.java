@@ -7,12 +7,14 @@ import com.bank.beijing.template.core.pojo.TemplateSinglePk;
 import com.bank.common.pages.Pager;
 import com.bank.core.iservice.AbstractMysqlBUSIService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 
 @Service
+@Transactional(rollbackFor = Exception.class)
 public class TemplateSinglePkService extends AbstractMysqlBUSIService implements ITemplateSinglePkService {
 
     @Resource
