@@ -2,6 +2,8 @@ package com.bank.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,11 +31,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
+import java.beans.Introspector;
 import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api")
 public class DwrBridgeController {
+
+    private static final Logger logger = LoggerFactory.getLogger(DwrBridgeController.class);
 
     private static final Pattern DATA_LIST_FIELD_PATTERN = Pattern.compile("dataList\\[(\\d+)](?:\\.|\\[)([^\\]]+)]?");
     private static final Pattern QUERY_PARAMS_FIELD_PATTERN = Pattern.compile("queryParams(?:\\.|\\[)([^\\]]+)]?");
@@ -160,71 +166,96 @@ public class DwrBridgeController {
         if (parameterTypes.length == 1) {
             return new Object[]{parseRequest(request, parameterTypes[0])};
         }
-//        throw new IllegalArgumentException("Only zero-arg or one-arg dwr methods are supported");
+        // 多参数方法：前两个通常是 (ServletContext, HttpServletRequest)，DWR 框架自动注入
+        // 剩余的业务参数从请求 body 解析
         Object[] args = new Object[parameterTypes.length];
-        Map<String, String[]> paramMap = request.getParameterMap();
+        int businessParamCount = 0;
 
         for (int i = 0; i < parameterTypes.length; i++) {
             Class<?> paramType = parameterTypes[i];
-            String paramName = "arg" + i;  // 默认 arg0, arg1...
-
-            // 尝试获取参数值
-            String[] values = paramMap.get(paramName);
-            if (values == null) {
-                // 尝试用简单类名
-                paramName = paramType.getSimpleName().toLowerCase();
-                values = paramMap.get(paramName);
-            }
-            if (values == null) {
-                paramName = "param" + i;
-                values = paramMap.get(paramName);
-            }
-
-            if (values != null && values.length > 0) {
-                args[i] = convertSimpleValue(values[0], paramType);
+            if (ServletContext.class.isAssignableFrom(paramType)) {
+                args[i] = request.getServletContext();
+            } else if (HttpServletRequest.class.isAssignableFrom(paramType)) {
+                args[i] = request;
             } else {
-                args[i] = getDefaultValue(paramType);
+                // 如果参数类型是 String[]，从 parameterMap 里找 "pks" 参数并解析为数组
+                if (paramType.equals(String[].class)) {
+                    args[i] = parseStringArrayParam(request);
+                } else if (businessParamCount == 0) {
+                    args[i] = parseRequest(request, paramType);
+                } else {
+                    // 多个业务参数时，逐个尝试从 paramMap 中匹配
+                    args[i] = parseRequestOrParamMap(request, paramType);
+                }
+                businessParamCount++;
             }
         }
 
         return args;
     }
-    private Object convertSimpleValue(String value, Class<?> targetType) {
-        if (value == null || value.trim().isEmpty()) {
-            return getDefaultValue(targetType);
-        }
-        if (String.class.equals(targetType)) return value;
-        if (Integer.class.equals(targetType) || int.class.equals(targetType)) return Integer.valueOf(value);
-        if (Long.class.equals(targetType) || long.class.equals(targetType)) return Long.valueOf(value);
-        if (Double.class.equals(targetType) || double.class.equals(targetType)) return Double.valueOf(value);
-        if (Boolean.class.equals(targetType) || boolean.class.equals(targetType)) return Boolean.valueOf(value);
 
-        // 复杂类型尝试 JSON 解析
-        try {
-            return objectMapper.readValue(value, targetType);
-        } catch (Exception e) {
-            return null;
+    /**
+     * 从 parameterMap 中解析 String[] 类型参数
+     * 支持 pks=["1","2","3"] 格式（JSON 数组字符串）
+     */
+    private String[] parseStringArrayParam(HttpServletRequest request) throws IOException {
+        // 先找常见的 pks 参数
+        String[] possibleKeys = {"pks", "ids", "keys"};
+        for (String key : possibleKeys) {
+            String[] vals = request.getParameterMap().get(key);
+            if (vals != null && vals.length > 0) {
+                String val = vals[0];
+                if (val != null && val.trim().startsWith("[")) {
+                    // JSON 数组格式：["1","2","3"]
+                    logger.info("parseStringArrayParam: key={}, value={}", key, val.substring(0, Math.min(80, val.length())));
+                    List<String> list = objectMapper.readValue(val, new TypeReference<List<String>>() {});
+                    return list.toArray(new String[0]);
+                } else if (val != null && !val.trim().isEmpty()) {
+                    // 逗号分隔格式：1,2,3
+                    return val.split(",");
+                }
+            }
         }
+        // 如果没找到上述 key，遍历所有参数
+        for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+            String val = entry.getValue() != null && entry.getValue().length > 0 ? entry.getValue()[0] : null;
+            if (val != null && val.trim().startsWith("[")) {
+                logger.info("parseStringArrayParam fallback: key={}, value={}", entry.getKey(), val.substring(0, Math.min(80, val.length())));
+                List<String> list = objectMapper.readValue(val, new TypeReference<List<String>>() {});
+                return list.toArray(new String[0]);
+            }
+        }
+        return new String[0];
     }
 
-    private Object getDefaultValue(Class<?> type) {
-        if (!type.isPrimitive()) return null;
-        if (int.class.equals(type)) return 0;
-        if (long.class.equals(type)) return 0L;
-        if (double.class.equals(type)) return 0.0;
-        if (boolean.class.equals(type)) return false;
-        if (float.class.equals(type)) return 0.0f;
-        if (short.class.equals(type)) return (short) 0;
-        if (byte.class.equals(type)) return (byte) 0;
-        if (char.class.equals(type)) return '\0';
-        return null;
+    /**
+     * 尝试从请求 body（JSON）或 parameterMap（form-urlencoded）解析单个业务参数
+     */
+    private Object parseRequestOrParamMap(HttpServletRequest request, Class<?> paramType) throws IOException {
+        String contentType = request.getContentType();
+        // JSON 请求：从 body 解析
+        if (contentType != null && contentType.toLowerCase().contains("application/json")) {
+            String body = readBody(request);
+            if (body != null && !body.trim().isEmpty()) {
+                try {
+                    return objectMapper.convertValue(
+                            objectMapper.readValue(body, new TypeReference<Map<String, Object>>() {}),
+                            paramType);
+                } catch (Exception ignored) {
+                }
+            }
+        }
+        // form-urlencoded 请求：从 parameterMap 解析（不提前消费 body）
+        return parseForm(request, paramType);
     }
-
     private Object parseRequest(HttpServletRequest request, Class<?> targetType) throws IOException {
         String contentType = request.getContentType();
+        logger.info("parseRequest DEBUG: targetType={}, contentType={}", targetType.getName(), contentType);
         if (contentType != null && contentType.toLowerCase().contains("application/json")) {
+            logger.info("parseRequest DEBUG: 走 JSON 解析分支");
             return parseJson(readBody(request), targetType);
         }
+        logger.info("parseRequest DEBUG: 走 parseForm 分支");
         return parseForm(request, targetType);
     }
 
@@ -240,13 +271,78 @@ public class DwrBridgeController {
 
     private Object parseJson(String value, Class<?> targetType) throws IOException {
         if (value == null || value.trim().isEmpty()) {
+            logger.warn("parseJson WARN: value 为空，创建空实例: targetType={}", targetType.getSimpleName());
             return newInstance(targetType);
         }
-        Map<String, Object> map = objectMapper.readValue(value, new TypeReference<Map<String, Object>>() {});
-        return convertMapToTarget(map, targetType);
+        logger.info("parseJson DEBUG: 开始解析 JSON, targetType={}, valueStartsWith={}",
+            targetType.getSimpleName(), value.substring(0, Math.min(80, value.length())));
+        try {
+            Map<String, Object> map = objectMapper.readValue(value, new TypeReference<Map<String, Object>>() {});
+            logger.info("parseJson DEBUG: JSON 解析为 Map, keys={}", map.keySet());
+            Object result = convertMapToTarget(map, targetType);
+            logger.info("parseJson DEBUG: 转换后对象类型={}, 对象={}", result.getClass().getSimpleName(), result);
+            // 尝试打印关键字段（如 tskId）
+            try {
+                Object idValue = result.getClass().getMethod("getTskId").invoke(result);
+                logger.info("parseJson DEBUG: 解析后对象的 tskId={}", idValue);
+            } catch (Exception e) {
+                logger.info("parseJson DEBUG: 无法获取 tskId (可能不是 TemplateSinglePk)");
+            }
+            
+            // ⚠️ 关键修复：如果 result 是 SingleBean 子类，将 ID 字段的值同步到 primaryKey 字段
+            // 因为 Hibernate 可能使用 SingleBean.primaryKey 作为实体 ID
+            if (result instanceof com.bank.core.pojo.SingleBean) {
+                // 尝试从 map 中获取 ID 字段的值，并设置到 primaryKey
+                // 先尝试常见的 ID 字段名
+                String[] possibleIdKeys = {"tskId", "id", "pk", "primaryKey"};
+                for (String idKey : possibleIdKeys) {
+                    if (map.containsKey(idKey)) {
+                        Object idVal = map.get(idKey);
+                        if (idVal != null) {
+                            // 使用原始类型避免泛型编译错误，转换为 String（大部分主键是 String）
+                            ((com.bank.core.pojo.SingleBean) result).setPrimaryKey(String.valueOf(idVal));
+                            logger.info("parseJson FIX: 将 map 中的 {}={} 同步到 primaryKey", idKey, idVal);
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            return result;
+        } catch (Exception e) {
+            logger.error("parseJson ERROR: 解析失败, targetType={}, error={}", targetType.getSimpleName(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     private Object parseForm(HttpServletRequest request, Class<?> targetType) throws IOException {
+        // 根据目标类型自动计算实体参数名（如 TemplateSinglePk -> templateSinglePk）
+        String entityName = Introspector.decapitalize(targetType.getSimpleName());
+        logger.info("parseForm ENTRY: targetType={}, entityName={}, paramMapSize={}",
+            targetType.getSimpleName(), entityName, request.getParameterMap().size());
+
+        // 【优先处理】直接从 parameterMap 里取实体名参数，如果是 JSON 则直接解析返回
+        // 这样不依赖 for 循环里的判断逻辑，更可靠
+        String[] entityValues = request.getParameterMap().get(entityName);
+        if (entityValues != null && entityValues.length > 0) {
+            String entityValue = entityValues[0];
+            if (entityValue != null && entityValue.trim().startsWith("{")) {
+                logger.info("parseForm HIT: 直接命中实体名参数 {}={}", entityName,
+                    entityValue.substring(0, Math.min(80, entityValue.length())));
+                return parseJson(entityValue, targetType);
+            }
+        }
+
+        // 同样处理 pager 参数
+        String[] pagerValues = request.getParameterMap().get("pager");
+        if (pagerValues != null && pagerValues.length > 0) {
+            String pagerValue = pagerValues[0];
+            if (pagerValue != null && pagerValue.trim().startsWith("{")) {
+                logger.info("parseForm HIT: 直接命中 pager 参数");
+                return parseJson(pagerValue, targetType);
+            }
+        }
+
         Map<String, Object> map = new HashMap<>();
         Map<String, Object> queryParams = new HashMap<>();
         Map<Integer, Map<String, Object>> dataListMap = new LinkedHashMap<>();
@@ -255,8 +351,13 @@ public class DwrBridgeController {
             String key = entry.getKey();
             String[] values = entry.getValue();
             String value = values != null && values.length > 0 ? values[0] : null;
+            logger.info("parseForm PARAM: key={}, valueStartsWith={}", key,
+                value != null && !value.isEmpty() ? value.substring(0, Math.min(50, value.length())) : "null");
 
             if ("pack".equals(key)) {
+                return parseJson(value, targetType);
+            } else if (entityName.equals(key) && value != null && value.trim().startsWith("{")) {
+                // 自动识别实体名参数：key 与实体类名匹配，且值为 JSON 对象字符串
                 return parseJson(value, targetType);
             } else if ("operator".equals(key)) {
                 map.put("userId", value);

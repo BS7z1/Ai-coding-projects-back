@@ -57,22 +57,8 @@ public class TemplateSinglePkPack {
             result.append(" and model.updatedTm = :updatedTm");
         }
 
-        // 审计字段（来自 SingleBean）
-        if (isNotBlank(templateSinglePk.getRecordId())) {
-            result.append(" and model.recordId = :recordId");
-        }
-        if (isNotBlank(templateSinglePk.getRecordDate())) {
-            result.append(" and model.recordDate = :recordDate");
-        }
-        if (isNotBlank(templateSinglePk.getLastmodiId())) {
-            result.append(" and model.lastmodiId = :lastmodiId");
-        }
-        if (isNotBlank(templateSinglePk.getLastmodiDate())) {
-            result.append(" and model.lastmodiDate = :lastmodiDate");
-        }
-
         // 默认按创建时间倒序
-        result.append(" order by model.recordDate desc");
+        result.append(" order by model.updatedTm desc");
         return result.toString();
     }
 
@@ -113,19 +99,6 @@ public class TemplateSinglePkPack {
         }
         if (templateSinglePk.getUpdatedTm() != null) {
             params.put("updatedTm", templateSinglePk.getUpdatedTm());
-        }
-
-        if (isNotBlank(templateSinglePk.getRecordId())) {
-            params.put("recordId", templateSinglePk.getRecordId().trim());
-        }
-        if (isNotBlank(templateSinglePk.getRecordDate())) {
-            params.put("recordDate", templateSinglePk.getRecordDate().trim());
-        }
-        if (isNotBlank(templateSinglePk.getLastmodiId())) {
-            params.put("lastmodiId", templateSinglePk.getLastmodiId().trim());
-        }
-        if (isNotBlank(templateSinglePk.getLastmodiDate())) {
-            params.put("lastmodiDate", templateSinglePk.getLastmodiDate().trim());
         }
 
         return params;
