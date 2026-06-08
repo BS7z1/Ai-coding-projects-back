@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/beijing")
+@RequestMapping("/api/beijing-mgr")
 public class DwrBeijingService {
 
     @Autowired
