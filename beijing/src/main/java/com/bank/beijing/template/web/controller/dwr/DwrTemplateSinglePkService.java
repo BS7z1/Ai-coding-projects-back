@@ -50,8 +50,6 @@ public class DwrTemplateSinglePkService {
      * 更新TemplateSinglePk
      */
     public ResultBean updateTemplateSinglePk(ServletContext context, HttpServletRequest request, TemplateSinglePk templateSinglePk){
-        String empNo = AssoUtil.getEmpNo();
-        templateSinglePk.initUpdate(empNo);
         templateSinglePkService.saveTemplateSinglePk(templateSinglePk);
         logger.info("更新 TemplateSinglePk ...");
         return WebUtilWork.WebResultPack(null);
