@@ -255,6 +255,19 @@ public class DwrBridgeController {
             logger.info("parseRequest DEBUG: 走 JSON 解析分支");
             return parseJson(readBody(request), targetType);
         }
+        // form 模式下，检测 body 是否为 JSON（以 { 或 [ 开头）
+        String body = readBody(request);
+        if (body != null) {
+            String trimmed = body.trim();
+            if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+                try {
+                    logger.info("parseRequest DEBUG: body 以 {} 开头，尝试 JSON 解析", trimmed.charAt(0));
+                    return parseJson(trimmed, targetType);
+                } catch (Exception e) {
+                    logger.warn("parseRequest WARN: JSON 解析失败，回退到 parseForm: {}", e.getMessage());
+                }
+            }
+        }
         logger.info("parseRequest DEBUG: 走 parseForm 分支");
         return parseForm(request, targetType);
     }
@@ -266,7 +279,10 @@ public class DwrBridgeController {
         while ((line = reader.readLine()) != null) {
             body.append(line);
         }
-        return body.toString();
+        String result = body.toString();
+        logger.error("readBody DEBUG: bodyLength={}, bodyStartsWith={}",
+            result.length(), result.length() > 0 ? result.substring(0, Math.min(200, result.length())) : "<EMPTY>");
+        return result;
     }
 
     private Object parseJson(String value, Class<?> targetType) throws IOException {
@@ -274,11 +290,33 @@ public class DwrBridgeController {
             logger.warn("parseJson WARN: value 为空，创建空实例: targetType={}", targetType.getSimpleName());
             return newInstance(targetType);
         }
+        String trimmed = value.trim();
         logger.info("parseJson DEBUG: 开始解析 JSON, targetType={}, valueStartsWith={}",
-            targetType.getSimpleName(), value.substring(0, Math.min(80, value.length())));
+            targetType.getSimpleName(), trimmed.substring(0, Math.min(80, trimmed.length())));
+
+        // JSON 数组 [{...}, {...}]
+        if (trimmed.startsWith("[")) {
+            List<Map<String, Object>> list = objectMapper.readValue(trimmed, new TypeReference<List<Map<String, Object>>>() {});
+            logger.info("parseJson DEBUG: JSON 数组解析, length={}", list.size());
+            if (targetType.isArray()) {
+                Class<?> componentType = targetType.getComponentType();
+                Object array = java.lang.reflect.Array.newInstance(componentType, list.size());
+                for (int i = 0; i < list.size(); i++) {
+                    java.lang.reflect.Array.set(array, i, convertMapToTarget(list.get(i), componentType));
+                }
+                return array;
+            }
+            // 非数组目标类型 + JSON 数组 → 取第一个元素
+            if (!list.isEmpty()) {
+                return convertMapToTarget(list.get(0), targetType);
+            }
+            return newInstance(targetType);
+        }
+
+        // JSON 对象 {...}
         try {
-            Map<String, Object> map = objectMapper.readValue(value, new TypeReference<Map<String, Object>>() {});
-            logger.info("parseJson DEBUG: JSON 解析为 Map, keys={}", map.keySet());
+            Map<String, Object> map = objectMapper.readValue(trimmed, new TypeReference<Map<String, Object>>() {});
+            logger.info("parseJson DEBUG: JSON 对象解析, keys={}", map.keySet());
             Object result = convertMapToTarget(map, targetType);
             logger.info("parseJson DEBUG: 转换后对象类型={}, 对象={}", result.getClass().getSimpleName(), result);
             // 尝试打印关键字段（如 tskId）
@@ -353,6 +391,16 @@ public class DwrBridgeController {
             String value = values != null && values.length > 0 ? values[0] : null;
             logger.info("parseForm PARAM: key={}, valueStartsWith={}", key,
                 value != null && !value.isEmpty() ? value.substring(0, Math.min(50, value.length())) : "null");
+
+            // 参数值是 JSON 数组且目标类型也是数组 → 直接 JSON 解析
+            if (targetType.isArray() && value != null && value.trim().startsWith("[")) {
+                try {
+                    logger.info("parseForm: 参数 {} 值为 JSON 数组，目标类型也是数组，直接 JSON 解析", key);
+                    return parseJson(value, targetType);
+                } catch (Exception e) {
+                    logger.warn("parseForm: JSON 数组解析失败，回退: {}", e.getMessage());
+                }
+            }
 
             if ("pack".equals(key)) {
                 return parseJson(value, targetType);
@@ -449,6 +497,15 @@ public class DwrBridgeController {
     }
 
     private Object convertMapToTarget(Map<String, Object> source, Class<?> targetType) {
+        // 当目标类型是数组时，将单个 Map 包装成单元素数组
+        // 例: {loanId: "xxx", tskId: "yyy"} → PKTemplateCompPk[{loanId: "xxx", tskId: "yyy"}]
+        if (targetType.isArray()) {
+            Class<?> componentType = targetType.getComponentType();
+            Object single = objectMapper.convertValue(normalizeMapForClass(source, componentType), componentType);
+            Object array = java.lang.reflect.Array.newInstance(componentType, 1);
+            java.lang.reflect.Array.set(array, 0, single);
+            return array;
+        }
         return objectMapper.convertValue(normalizeMapForClass(source, targetType), targetType);
     }
 

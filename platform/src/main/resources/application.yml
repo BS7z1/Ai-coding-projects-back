@@ -10,6 +10,7 @@ spring:
     open-in-view: false
     mapping-resources:
       - hbmconf/hbm.mysql.beijing.template.TemplateSinglePk.xml
+      - hbmconf/hbm.mysql.beijing.template.TemplateCompPk.xml
     hibernate:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
