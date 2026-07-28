@@ -11,6 +11,7 @@ spring:
     mapping-resources:
       - hbmconf/hbm.mysql.beijing.template.TemplateSinglePk.xml
       - hbmconf/hbm.mysql.beijing.template.TemplateCompPk.xml
+      - hbmconf/hbm.mysql.beijing.incomingmessage.IncomingMessage.xml
     hibernate:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl

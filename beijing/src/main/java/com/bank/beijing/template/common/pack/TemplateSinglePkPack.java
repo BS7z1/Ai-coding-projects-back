@@ -13,7 +13,7 @@ public class TemplateSinglePkPack {
         }
 
         // 主键字段 - 流水号（通过 model.primaryKey 访问）
-        if (isNotBlank(templateSinglePk.getTskId())) {
+        if (isNotBlank(templateSinglePk.getPrimaryKey())) {
             result.append(" and model.primaryKey = :tskId");
         }
         // 借据号
@@ -67,8 +67,8 @@ public class TemplateSinglePkPack {
         if (templateSinglePk == null) {
             return params;
         }
-        if (isNotBlank(templateSinglePk.getTskId())) {
-            params.put("tskId", templateSinglePk.getTskId().trim());
+        if (isNotBlank(templateSinglePk.getPrimaryKey())) {
+            params.put("tskId", templateSinglePk.getPrimaryKey().trim());
         }
         if (isNotBlank(templateSinglePk.getLoanId())) {
             params.put("loanId", templateSinglePk.getLoanId().trim());

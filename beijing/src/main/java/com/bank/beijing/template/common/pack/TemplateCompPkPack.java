@@ -14,11 +14,11 @@ public class TemplateCompPkPack {
         }
 
         // 主键字段 - 流水号（通过 model.primaryKey 访问）
-        if (isNotBlank(templateCompPk.getTskId())) {
+        if (isNotBlank(templateCompPk.getPrimaryKey().getTskId())) {
             result.append(" and model.primaryKey.tskId = :tskId");
         }
         // 借据号
-        if (isNotBlank(templateCompPk.getLoanId())) {
+        if (isNotBlank(templateCompPk.getPrimaryKey().getLoanId())) {
             result.append(" and model.primaryKey.loanId = :loanId");
         }
         // 公司名称
@@ -68,11 +68,11 @@ public class TemplateCompPkPack {
         if (templateCompPk == null) {
             return params;
         }
-        if (isNotBlank(templateCompPk.getTskId())) {
+        if (isNotBlank(templateCompPk.getPrimaryKey().getTskId())) {
             params.put("tskId", templateCompPk.getTskId().trim());
         }
-        if (isNotBlank(templateCompPk.getLoanId())) {
-            params.put("loanId", templateCompPk.getLoanId().trim());
+        if (isNotBlank(templateCompPk.getPrimaryKey().getLoanId())) {
+            params.put("loanId", templateCompPk.getPrimaryKey().getLoanId().trim());
         }
         if (isNotBlank(templateCompPk.getCompanyName())) {
             params.put("companyName", templateCompPk.getCompanyName().trim());

@@ -62,7 +62,7 @@ public class DwrTemplateCompPkService {
     public ResultBean getTemplateCompPkByPk(ServletContext context, HttpServletRequest request, PKTemplateCompPk pk){
         TemplateCompPk templateCompPk = templateCompPkService.getTemplateCompPkByPk(pk);
         logger.info("根据主键获得 TemplateCompPk ...");
-        return WebUtilWork.WebResultPack(templateCompPk);
+        return WebUtilWork.WebObjectPack(templateCompPk);
     }
 
     /**

@@ -24,6 +24,6 @@ public class DwrBeijingService {
      */
     @GetMapping("/health")
     public ResultBean health() {
-        return WebUtilWork.WebResultPack(true, "北京业务模块运行正常", null);
+        return WebUtilWork.WebObjectPack(true, "北京业务模块运行正常", null);
     }
 }
