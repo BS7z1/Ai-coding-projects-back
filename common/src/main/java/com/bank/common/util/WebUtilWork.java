@@ -55,7 +55,7 @@ public class WebUtilWork {
      * @param success
      * @param message
      */
-    public static ResultBean WebResultPack(boolean success, String message, Object obj){
+    public static ResultBean WebObjectPack(boolean success, String message, Object obj){
         ResultBean resultBean = null;
         if(obj != null){
             ArrayList list = new ArrayList();
@@ -63,6 +63,24 @@ public class WebUtilWork {
             resultBean = new ResultBean(success, message, list);
         }else{
             resultBean  = new ResultBean(success, message);
+        }
+        return resultBean;
+    }
+
+
+    /**
+     * ResultBean 封装类
+     * @param obj
+     * @return
+     */
+    public static ResultBean WebObjectPack(Object obj){
+        ResultBean resultBean = null;
+        if(obj != null){
+            ArrayList list = new ArrayList();
+            list.add(obj);
+            resultBean = new ResultBean(true, "操作执行成功(Success)", list);
+        }else{
+            resultBean  = new ResultBean(false, "操作执行异常(Error).");
         }
         return resultBean;
     }

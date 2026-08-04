@@ -15,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import javax.annotation.Resource;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -58,12 +59,11 @@ public class DwrTemplateSinglePkService {
     /**
      * 根据主键获得TemplateSinglePk
      */
-    public ResultBean getTemplateSinglePkByPk(ServletContext context, HttpServletRequest request, String pk){
+    public ResultBean getTemplateSinglePkByPk(ServletContext context, HttpServletRequest request, String pk) {
         TemplateSinglePk templateSinglePk = templateSinglePkService.getTemplateSinglePkByPk(pk);
         logger.info("根据主键获得 TemplateSinglePk ...");
-        return WebUtilWork.WebResultPack(templateSinglePk);
+        return WebUtilWork.WebObjectPack(templateSinglePk);
     }
-
     /**
      * 删除 TemplateSinglePk
      */

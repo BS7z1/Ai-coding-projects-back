@@ -11,6 +11,7 @@ spring:
     mapping-resources:
       - hbmconf/hbm.mysql.beijing.template.TemplateSinglePk.xml
       - hbmconf/hbm.mysql.beijing.template.TemplateCompPk.xml
+      - hbmconf/hbm.mysql.beijing.incomingmessage.IncomingMessage.xml
     hibernate:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
@@ -20,9 +21,9 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/chenziyi?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: root
-    password: Aicoding@0517
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: ${DB_USER}
+    password: ${DB_PWD}
     druid:
       initial-size: 5
       min-idle: 5

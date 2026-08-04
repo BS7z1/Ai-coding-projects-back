@@ -354,6 +354,26 @@ public class DwrBridgeController {
     }
 
     private Object parseForm(HttpServletRequest request, Class<?> targetType) throws IOException {
+        // 如果目标类型是简单类型（String、基本类型等），直接从 parameterMap 提取对应参数值
+        if (targetType.equals(String.class) || targetType.equals(int.class) || targetType.equals(long.class)
+                || targetType.equals(Integer.class) || targetType.equals(Long.class)) {
+            // 尝试从 parameterMap 中提取与目标类型匹配的参数
+            // 优先查找 "pk" 参数，这是 Detail 组件常用的参数名
+            String[] pkValues = request.getParameterMap().get("pk");
+            if (pkValues != null && pkValues.length > 0 && pkValues[0] != null) {
+                return pkValues[0];
+            }
+            // 如果没找到 pk，遍历所有参数找一个简单的字符串值
+            for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+                String key = entry.getKey();
+                String[] values = entry.getValue();
+                if (values != null && values.length > 0 && values[0] != null && !values[0].trim().startsWith("{") && !values[0].trim().startsWith("[")) {
+                    return values[0];
+                }
+            }
+            return null;
+        }
+
         // 根据目标类型自动计算实体参数名（如 TemplateSinglePk -> templateSinglePk）
         String entityName = Introspector.decapitalize(targetType.getSimpleName());
         logger.info("parseForm ENTRY: targetType={}, entityName={}, paramMapSize={}",
